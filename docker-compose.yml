@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  llm-prompt-regression:
+    build: .
+    container_name: llm-prompt-regression
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DEFAULT_MODEL_1=${DEFAULT_MODEL_1:-gpt-3.5-turbo}
+      - DEFAULT_MODEL_2=${DEFAULT_MODEL_2:-gpt-4}
+      - DEFAULT_TEMPERATURE_1=${DEFAULT_TEMPERATURE_1:-0.0}
+      - DEFAULT_TEMPERATURE_2=${DEFAULT_TEMPERATURE_2:-1.0}
+      - DEFAULT_TOP_P_1=${DEFAULT_TOP_P_1:-0.5}
+      - DEFAULT_TOP_P_2=${DEFAULT_TOP_P_2:-1.0}
+      - DEFAULT_MAX_TOKENS_1=${DEFAULT_MAX_TOKENS_1:-100}
+      - DEFAULT_MAX_TOKENS_2=${DEFAULT_MAX_TOKENS_2:-200}
+      - MAX_RETRIES=${MAX_RETRIES:-3}
+      - REQUEST_TIMEOUT=${REQUEST_TIMEOUT:-30}
+      - BATCH_SIZE=${BATCH_SIZE:-5}
+      - REPORT_OUTPUT_DIR=/app/reports
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - CI_MODE=${CI_MODE:-false}
+    volumes:
+      - ./reports:/app/reports
+      - ./logs:/app/logs
+      - ./config:/app/config
+    working_dir: /app
+    command: ["python", "-m", "pytest", "tests/", "-v", "--tb=short", "--cov=src/llm_prompt_regression"]
+    
+  # Optional: Add a service for running specific tests
+  test-runner:
+    build: .
+    container_name: test-runner
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - REPORT_OUTPUT_DIR=/app/reports
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./reports:/app/reports
+      - ./logs:/app/logs
+      - ./config:/app/config
+    working_dir: /app
+    command: ["python", "-c", "from src.llm_prompt_regression.core.test_runner import TestRunner; from src.llm_prompt_regression.utils.config_loader import ConfigLoader; import asyncio; print('Test runner ready')"]
+    profiles:
+      - test
+
+  # Optional: Add a service for report generation
+  report-generator:
+    build: .
+    container_name: report-generator
+    environment:
+      - REPORT_OUTPUT_DIR=/app/reports
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./reports:/app/reports
+      - ./logs:/app/logs
+    working_dir: /app
+    command: ["python", "-c", "from src.llm_prompt_regression.core.report_generator import ReportGenerator; print('Report generator ready')"]
+    profiles:
+      - report
+
+volumes:
+  reports:
+  logs:

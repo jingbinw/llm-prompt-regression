@@ -2,7 +2,7 @@
 
 A comprehensive framework for testing LLM output consistency across different model versions and parameter configurations. This framework helps detect drift and inconsistencies in LLM responses, ensuring reliable AI applications.
 
-## 🎯 Features
+## Features
 
 - **Model Comparison**: Compare responses between different LLM models (GPT-3.5-turbo, GPT-4, etc.)
 - **Parameter Variation Testing**: Test how different parameters (temperature, top_p, max_tokens) affect output consistency
@@ -12,7 +12,7 @@ A comprehensive framework for testing LLM output consistency across different mo
 - **Docker Support**: Containerized testing environment
 - **Flexible Configuration**: YAML/JSON configuration files for easy test customization
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -45,7 +45,7 @@ A comprehensive framework for testing LLM output consistency across different mo
    python examples/run_basic_test.py
    ```
 
-## 📖 Usage
+## Usage
 
 ### Command Line Interface
 
@@ -141,7 +141,7 @@ async def run_custom_test():
 asyncio.run(run_custom_test())
 ```
 
-## 🐳 Docker Usage
+## Docker Usage
 
 ### Build and Run
 
@@ -172,7 +172,7 @@ docker-compose run test-runner
 docker-compose run report-generator
 ```
 
-## 🔧 Configuration Options
+## Configuration Options
 
 ### Model Configuration
 
@@ -220,7 +220,7 @@ parameter_variations:
     description: "Conservative + Focused + Short"
 ```
 
-## 📊 Reports and Metrics
+## Reports and Metrics
 
 The framework generates comprehensive reports including:
 
@@ -249,7 +249,7 @@ reports/
 └── report_20240101_120000_response_time.png
 ```
 
-## 🔄 CI/CD Integration
+## CI/CD Integration
 
 ### GitHub Actions
 
@@ -291,7 +291,7 @@ on:
    - Review generated reports in artifacts
    - Set up notifications for failures
 
-## 🧪 Testing
+## Testing
 
 ### Run Tests
 
@@ -316,7 +316,7 @@ pytest --cov=src/llm_prompt_regression --cov-report=html
 - **End-to-End Tests**: Full workflow testing
 - **Mock Tests**: API-free testing with mocked responses
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 llm-prompt-regression/
@@ -354,17 +354,6 @@ llm-prompt-regression/
 └── README.md                          # This file
 ```
 
-## 🤝 Contributing
-
-1. **Fork the repository**
-2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
-3. **Make your changes**
-4. **Add tests** for new functionality
-5. **Run tests**: `pytest`
-6. **Commit changes**: `git commit -m 'Add amazing feature'`
-7. **Push to branch**: `git push origin feature/amazing-feature`
-8. **Open a Pull Request**
-
 ### Development Setup
 
 ```bash
@@ -387,32 +376,9 @@ pre-commit install
 pytest
 ```
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
 
-- OpenAI for providing the GPT models
-- The open-source community for various Python packages
-- Contributors and testers who helped improve this framework
 
-## 📞 Support
-
-- **Issues**: [GitHub Issues](https://github.com/yourusername/llm-prompt-regression/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/llm-prompt-regression/discussions)
-- **Documentation**: [Wiki](https://github.com/yourusername/llm-prompt-regression/wiki)
-
-## 🔮 Roadmap
-
-- [ ] Support for more LLM providers (Anthropic, Cohere, etc.)
-- [ ] Advanced drift detection algorithms
-- [ ] Real-time monitoring dashboard
-- [ ] Integration with popular ML frameworks
-- [ ] Performance optimization for large-scale testing
-- [ ] Advanced visualization options
-- [ ] Plugin system for custom metrics
-
----
-
-**Made with ❤️ for the AI community**

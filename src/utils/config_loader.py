@@ -65,7 +65,6 @@ class ConfigLoader:
             raise ValueError(f"Unsupported configuration file format: {config_path.suffix}")
     
     def load_test_suite_config(self, config_file: str) -> TestSuiteConfig:
-    def load_test_suite_config(self, config_file: str) -> TestSuiteConfig:
         """
         Load test suite configuration from file.
         

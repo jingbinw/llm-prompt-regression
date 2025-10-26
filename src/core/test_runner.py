@@ -12,8 +12,8 @@ from langchain_openai import ChatOpenAI
 from langchain.schema import HumanMessage
 import tiktoken
 
-from ..models.test_config import TestConfig, ModelConfig
-from ..models.test_result import (
+from ..models.config_schemas import TestConfig, ModelConfig
+from ..models.result_schemas import (
     TestResult, ComparisonResult, ModelResponse, 
     TestStatus, ComparisonMetric
 )

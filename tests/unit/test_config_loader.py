@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 
 from src.utils.config_loader import ConfigLoader
-from src.models.test_config import TestConfig, ModelType
+from src.models.config_schemas import TestConfig, ModelType
 
 
 class TestConfigLoader:

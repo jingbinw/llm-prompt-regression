@@ -14,7 +14,7 @@ from core.test_runner import TestRunner
 from core.report_generator import ReportGenerator
 from utils.config_loader import ConfigLoader
 from utils.logger_setup import setup_logging
-from models.test_result import TestSuiteResult, TestStatus
+from models.result_schemas import TestSuiteResult, TestStatus
 
 
 async def main():

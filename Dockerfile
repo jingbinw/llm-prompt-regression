@@ -27,8 +27,8 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 # Copy source code
 COPY src/ ./src/
-COPY config/ ./config/
 COPY tests/ ./tests/
+COPY examples/ ./examples/
 COPY pyproject.toml .
 COPY env.example .env.example
 

@@ -56,7 +56,7 @@ The framework provides a comprehensive CLI for running tests:
 python -m src.llm_prompt_regression.cli run
 
 # Run specific configuration file
-python -m src.llm_prompt_regression.cli run --config config/basic_test.yaml
+python -m src.llm_prompt_regression.cli run --config my_test.yaml
 
 # Run with custom parameters
 python -m src.llm_prompt_regression.cli run \
@@ -68,7 +68,7 @@ python -m src.llm_prompt_regression.cli run \
 
 # Run test suite
 python -m src.llm_prompt_regression.cli run-suite \
-  --config config/comprehensive_test_suite.yaml
+  --config my_test_suite.yaml
 
 # Generate reports from existing results
 python -m src.llm_prompt_regression.cli report --input reports/results.json
@@ -82,7 +82,7 @@ python -m src.llm_prompt_regression.cli config --create-default
 Create YAML or JSON configuration files to define your tests:
 
 ```yaml
-# config/my_test.yaml
+# my_test.yaml
 test_name: "My Custom Test"
 prompts:
   - "Explain quantum computing in simple terms."
@@ -337,10 +337,6 @@ llm-prompt-regression/
 ├── tests/                             # Test files
 │   ├── unit/                          # Unit tests
 │   └── integration/                   # Integration tests
-├── config/                            # Configuration files
-│   ├── basic_test.yaml                # Basic test configuration
-│   ├── parameter_variation_test.yaml  # Parameter variation tests
-│   └── comprehensive_test_suite.yaml  # Full test suite
 ├── examples/                          # Example scripts
 │   ├── run_basic_test.py              # Basic test example
 │   └── run_parameter_variation_test.py # Parameter test example

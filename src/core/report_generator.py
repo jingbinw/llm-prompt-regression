@@ -14,7 +14,10 @@ import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 
-from ..models.test_result import TestSuiteResult, DriftReport, ComparisonResult
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend
+
+from ..models.result_schemas import TestSuiteResult, DriftReport, ComparisonResult
 from ..utils.logger_setup import get_logger
 
 

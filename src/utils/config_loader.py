@@ -9,7 +9,7 @@ from typing import Dict, Any, Optional
 from pathlib import Path
 from dotenv import load_dotenv
 
-from ..models.test_config import TestConfig, TestSuiteConfig, ModelConfig, ParameterConfig, ModelType
+from ..models.config_schemas import TestConfig, TestSuiteConfig, ModelConfig, ParameterConfig, ModelType
 
 
 class ConfigLoader:
@@ -20,9 +20,10 @@ class ConfigLoader:
         Initialize the config loader.
         
         Args:
-            config_dir: Directory containing configuration files
+            config_dir: Optional base directory for relative paths. If not provided,
+                       paths will be resolved relative to current directory.
         """
-        self.config_dir = Path(config_dir) if config_dir else Path("./config")
+        self.config_dir = Path(config_dir) if config_dir else None
         self._load_environment()
     
     def _load_environment(self):
@@ -33,19 +34,26 @@ class ConfigLoader:
             if os.path.exists(env_file):
                 load_dotenv(env_file)
                 break
-    
     def load_test_config(self, config_file: str) -> TestConfig:
         """
         Load test configuration from file.
         
         Args:
-            config_file: Path to configuration file
+            config_file: Path to configuration file (absolute or relative)
             
         Returns:
             Test configuration
         """
-        config_path = self.config_dir / config_file
+        # Convert to Path and resolve
+        config_path = Path(config_file)
         
+        # If not absolute and config_dir is set, try relative to config_dir first
+        if not config_path.is_absolute() and self.config_dir:
+            potential_path = self.config_dir / config_file
+            if potential_path.exists():
+                config_path = potential_path
+        
+        # If still not found or was absolute, use as-is
         if not config_path.exists():
             raise FileNotFoundError(f"Configuration file not found: {config_path}")
         
@@ -57,22 +65,30 @@ class ConfigLoader:
             raise ValueError(f"Unsupported configuration file format: {config_path.suffix}")
     
     def load_test_suite_config(self, config_file: str) -> TestSuiteConfig:
+    def load_test_suite_config(self, config_file: str) -> TestSuiteConfig:
         """
         Load test suite configuration from file.
         
         Args:
-            config_file: Path to configuration file
+            config_file: Path to configuration file (absolute or relative)
             
         Returns:
             Test suite configuration
         """
-        config_path = self.config_dir / config_file
+        # Convert to Path and resolve
+        config_path = Path(config_file)
         
+        # If not absolute and config_dir is set, try relative to config_dir first
+        if not config_path.is_absolute() and self.config_dir:
+            potential_path = self.config_dir / config_file
+            if potential_path.exists():
+                config_path = potential_path
+        
+        # If still not found or was absolute, use as-is
         if not config_path.exists():
             raise FileNotFoundError(f"Configuration file not found: {config_path}")
         
         if config_path.suffix.lower() == '.yaml' or config_path.suffix.lower() == '.yml':
-            return self._load_yaml_suite_config(config_path)
         elif config_path.suffix.lower() == '.json':
             return self._load_json_suite_config(config_path)
         else:

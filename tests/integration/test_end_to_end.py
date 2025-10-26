@@ -11,7 +11,7 @@ from unittest.mock import patch, AsyncMock
 from src.core.test_runner import TestRunner
 from src.core.report_generator import ReportGenerator
 from src.utils.config_loader import ConfigLoader
-from src.models.test_result import TestSuiteResult, TestStatus
+from src.models.result_schemas import TestSuiteResult, TestStatus
 
 
 class TestEndToEnd:
@@ -138,7 +138,7 @@ class TestEndToEnd:
     def test_report_generation(self):
         """Test report generation functionality."""
         # Create a mock test suite result
-        from src.llm_prompt_regression.models.test_result import TestResult, ComparisonResult, ModelResponse
+        from src.llm_prompt_regression.models.result_schemas import TestResult, ComparisonResult, ModelResponse
         from datetime import datetime
         
         # Create mock model responses
@@ -278,7 +278,7 @@ output_dir: "./reports"
     def test_file_outputs(self):
         """Test that all expected output files are created."""
         # Create mock data
-        from src.llm_prompt_regression.models.test_result import TestResult, ComparisonResult, ModelResponse
+        from src.llm_prompt_regression.models.result_schemas import TestResult, ComparisonResult, ModelResponse
         from datetime import datetime
         
         response1 = ModelResponse(

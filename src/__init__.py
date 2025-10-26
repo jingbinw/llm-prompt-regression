@@ -10,9 +10,10 @@ __author__ = "Your Name"
 __email__ = "your.email@example.com"
 
 from .core.test_runner import TestRunner
-from .models.test_config import TestConfig, ModelConfig, ParameterConfig
-from .models.test_result import TestResult, ComparisonResult
 from .core.report_generator import ReportGenerator
+from .utils.config_loader import ConfigLoader
+from .models.config_schemas import TestConfig, ModelConfig, ParameterConfig
+from .models.result_schemas import TestResult, ComparisonResult
 
 __all__ = [
     "TestRunner",

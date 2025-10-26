@@ -13,7 +13,7 @@ from .core.test_runner import TestRunner
 from .core.report_generator import ReportGenerator
 from .utils.config_loader import ConfigLoader
 from .utils.logger_setup import setup_logging
-from .models.test_result import TestSuiteResult, TestStatus
+from .models.result_schemas import TestSuiteResult, TestStatus
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -27,7 +27,7 @@ Examples:
   python -m llm_prompt_regression.cli run
 
   # Run specific configuration file
-  python -m llm_prompt_regression.cli run --config config/basic_test.yaml
+  python -m llm_prompt_regression.cli run --config my_test.yaml
 
   # Run with custom parameters
   python -m llm_prompt_regression.cli run --model1 gpt-3.5-turbo --model2 gpt-4
@@ -36,7 +36,7 @@ Examples:
   python -m llm_prompt_regression.cli report --input reports/results.json
 
   # Run test suite
-  python -m llm_prompt_regression.cli run-suite --config config/comprehensive_test_suite.yaml
+  python -m llm_prompt_regression.cli run-suite --config my_test_suite.yaml
         """
     )
     
@@ -169,8 +169,8 @@ Examples:
     config_parser.add_argument(
         '--output', '-o',
         type=str,
-        default='./config',
-        help='Output directory for configuration files (default: ./config)'
+        default='.',
+        help='Output directory for configuration files (default: current directory)'
     )
     
     return parser
@@ -203,7 +203,7 @@ async def run_tests(args) -> int:
             if args.model1 or args.model2:
                 config.models = []
                 if args.model1:
-                    from .models.test_config import ModelConfig, ParameterConfig, ModelType
+                    from .models.config_schemas import ModelConfig, ParameterConfig, ModelType
                     config.models.append(ModelConfig(
                         name=args.model1,
                         model_type=ModelType(args.model1),

@@ -155,16 +155,17 @@ output_dir: "./reports"
         os.environ['TEST_OPENAI_API_KEY'] = 'test-key-123'
         os.environ['TEST_DEFAULT_MODEL'] = 'gpt-3.5-turbo'
         os.environ['TEST_MAX_RETRIES'] = '5'
-        
-        # Create a basic config and save it first
+
+        # Create a basic config and save it first into a temporary directory
         config = self.loader.create_default_config()
         config.test_name = "Environment Test Config"
-        self.loader.save_config(config, "env_test_config.json", format='json')
-        
+        output_file = Path(self.temp_dir) / "env_test_config.json"
+        self.loader.save_config(config, str(output_file), format='json')
+
         # Load it back and verify it exists
         loaded_config = self.loader.load_test_config("env_test_config.json")
         assert loaded_config.test_name == "Environment Test Config"
-        
+
         # Clean up environment variables
         del os.environ['TEST_OPENAI_API_KEY']
         del os.environ['TEST_DEFAULT_MODEL']

@@ -369,11 +369,11 @@ class ReportGenerator:
         report_file = self.output_dir / f"{report.report_id}.json"
         
         # Convert to dict and handle datetime serialization
-        report_dict = report.dict()
-        report_dict['generated_at'] = report_dict['generated_at'].isoformat()
+        report_dict = report.model_dump(mode='json')
+        report_dict['generated_at'] = report_dict['generated_at'].isoformat() if isinstance(report_dict['generated_at'], datetime) else report_dict['generated_at']
         
         with open(report_file, 'w', encoding='utf-8') as f:
-            json.dump(report_dict, f, indent=2, ensure_ascii=False)
+            json.dump(report_dict, f, indent=2, ensure_ascii=False, default=str)
     
     def _generate_html_content(self, drift_report: DriftReport) -> str:
         """Generate HTML content for the report."""

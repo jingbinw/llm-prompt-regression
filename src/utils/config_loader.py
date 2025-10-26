@@ -88,6 +88,7 @@ class ConfigLoader:
             raise FileNotFoundError(f"Configuration file not found: {config_path}")
         
         if config_path.suffix.lower() == '.yaml' or config_path.suffix.lower() == '.yml':
+            return self._load_yaml_suite_config(config_path)
         elif config_path.suffix.lower() == '.json':
             return self._load_json_suite_config(config_path)
         else:
@@ -267,7 +268,7 @@ class ConfigLoader:
         config_path = Path(filepath)
         config_path.parent.mkdir(parents=True, exist_ok=True)
         
-        config_dict = config.dict()
+        config_dict = config.model_dump(mode='json')
         
         if format.lower() == 'yaml':
             with open(config_path, 'w', encoding='utf-8') as f:

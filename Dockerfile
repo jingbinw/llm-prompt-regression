@@ -7,39 +7,19 @@ WORKDIR /app
 # Set environment variables
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    gcc \
-    g++ \
-    make \
-    libffi-dev \
-    libssl-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements first for better caching
+# Copy requirements and install dependencies
 COPY requirements.txt .
-
-# Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy source code
+# Copy source code and tests
 COPY src/ ./src/
 COPY tests/ ./tests/
-COPY examples/ ./examples/
 COPY pyproject.toml .
-COPY env.example .env.example
 
-# Create directories for outputs
-RUN mkdir -p reports logs
+# Create output directories
+RUN mkdir -p reports
 
-# Set permissions
-RUN chmod +x /app
-
-# Expose port (if needed for web interface)
-EXPOSE 8000
-
-# Default command
-CMD ["python", "-m", "pytest", "tests/", "-v", "--tb=short"]
+# Default command - run tests
+CMD ["pytest", "tests/", "-v"]

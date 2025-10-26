@@ -137,11 +137,6 @@ logs/
 .env.test
 .env.production
 
-# Documentation files (optional to ignore)
-CONTRIBUTING.md
-PROJECT_OVERVIEW.md
-quick_start.py
-
 # IDE
 .vscode/
 .idea/
@@ -187,7 +182,10 @@ local_config.yaml
 local_config.json
 config.local.*
 
+# Local configuration overrides
+local_config.yaml
+local_config.json
+config.local.*
+env_test_config.json
+
 # Backup files
-*.bak
-*.backup
-*.orig

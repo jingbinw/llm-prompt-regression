@@ -3,7 +3,7 @@ Test configuration models for LLM prompt regression testing.
 """
 
 from typing import List, Dict, Any, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from enum import Enum
 
 
@@ -22,8 +22,8 @@ class ParameterConfig(BaseModel):
     frequency_penalty: float = Field(default=0.0, ge=-2.0, le=2.0, description="Frequency penalty")
     presence_penalty: float = Field(default=0.0, ge=-2.0, le=2.0, description="Presence penalty")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "temperature": 0.7,
                 "top_p": 1.0,
@@ -32,6 +32,7 @@ class ParameterConfig(BaseModel):
                 "presence_penalty": 0.0
             }
         }
+    )
 
 
 class ModelConfig(BaseModel):
@@ -41,8 +42,8 @@ class ModelConfig(BaseModel):
     parameters: ParameterConfig = Field(default_factory=ParameterConfig, description="Model parameters")
     description: Optional[str] = Field(default=None, description="Optional description of the model")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "name": "gpt-3.5-turbo",
                 "model_type": "gpt-3.5-turbo",
@@ -54,6 +55,7 @@ class ModelConfig(BaseModel):
                 "description": "GPT-3.5 Turbo model for comparison testing"
             }
         }
+    )
 
 
 class TestConfig(BaseModel):
@@ -70,8 +72,8 @@ class TestConfig(BaseModel):
     batch_size: int = Field(default=5, ge=1, le=20, description="Batch size for concurrent requests")
     output_dir: str = Field(default="./reports", description="Output directory for reports")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "test_name": "Basic Prompt Regression Test",
                 "prompts": [
@@ -96,6 +98,7 @@ class TestConfig(BaseModel):
                 ]
             }
         }
+    )
 
 
 class TestSuiteConfig(BaseModel):
@@ -108,8 +111,8 @@ class TestSuiteConfig(BaseModel):
         description="Global settings applied to all tests"
     )
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "suite_name": "Comprehensive Model Comparison",
                 "description": "Test suite for comparing different OpenAI models",
@@ -125,3 +128,4 @@ class TestSuiteConfig(BaseModel):
                 ]
             }
         }
+    )

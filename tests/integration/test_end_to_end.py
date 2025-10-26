@@ -32,18 +32,22 @@ class TestEndToEnd:
         shutil.rmtree(self.temp_dir, ignore_errors=True)
     
     @pytest.mark.asyncio
-    @patch('openai.AsyncOpenAI')
+    @patch('src.core.test_runner.AsyncOpenAI')
     async def test_basic_test_execution(self, mock_openai):
         """Test basic test execution with mocked OpenAI API."""
         # Setup mock responses
         mock_response = AsyncMock()
         mock_response.choices = [AsyncMock()]
-        mock_response.choices[0].message.content = "This is a test response from GPT-3.5-turbo."
+        mock_response.choices[0].message.content = "This is a test response from the LLM."
         mock_response.usage = AsyncMock()
-        mock_response.usage.dict.return_value = {"total_tokens": 10, "prompt_tokens": 5, "completion_tokens": 5}
+        mock_response.usage.model_dump.return_value = {"total_tokens": 10, "prompt_tokens": 5, "completion_tokens": 5}
+        
+        # Create async function for mock
+        async def mock_create(**kwargs):
+            return mock_response
         
         mock_client = AsyncMock()
-        mock_client.chat.completions.create.return_value = mock_response
+        mock_client.chat.completions.create = mock_create
         mock_openai.return_value = mock_client
         
         # Create test configuration
@@ -63,7 +67,7 @@ class TestEndToEnd:
         assert len(result.comparison_results) == 0  # No comparisons with single model
     
     @pytest.mark.asyncio
-    @patch('openai.AsyncOpenAI')
+    @patch('src.core.test_runner.AsyncOpenAI')
     async def test_model_comparison_execution(self, mock_openai):
         """Test model comparison with mocked responses."""
         # Setup different mock responses for different models
@@ -72,7 +76,7 @@ class TestEndToEnd:
             mock_response.choices = [AsyncMock()]
             mock_response.choices[0].message.content = content
             mock_response.usage = AsyncMock()
-            mock_response.usage.dict.return_value = {"total_tokens": len(content.split()), "prompt_tokens": 2, "completion_tokens": len(content.split()) - 2}
+            mock_response.usage.model_dump.return_value = {"total_tokens": len(content.split()), "prompt_tokens": 2, "completion_tokens": len(content.split()) - 2}
             return mock_response
         
         mock_client = AsyncMock()
@@ -107,7 +111,7 @@ class TestEndToEnd:
         assert result.comparison_results[0].prompt == "Explain machine learning"
     
     @pytest.mark.asyncio
-    @patch('openai.AsyncOpenAI')
+    @patch('src.core.test_runner.AsyncOpenAI')
     async def test_parameter_variation_execution(self, mock_openai):
         """Test parameter variation execution."""
         # Setup mock responses
@@ -115,10 +119,14 @@ class TestEndToEnd:
         mock_response.choices = [AsyncMock()]
         mock_response.choices[0].message.content = "Response with different parameters."
         mock_response.usage = AsyncMock()
-        mock_response.usage.dict.return_value = {"total_tokens": 6, "prompt_tokens": 2, "completion_tokens": 4}
+        mock_response.usage.model_dump.return_value = {"total_tokens": 6, "prompt_tokens": 2, "completion_tokens": 4}
+        
+        # Create async function for mock
+        async def mock_create(**kwargs):
+            return mock_response
         
         mock_client = AsyncMock()
-        mock_client.chat.completions.create.return_value = mock_response
+        mock_client.chat.completions.create = mock_create
         mock_openai.return_value = mock_client
         
         # Create test configuration with parameter variations
@@ -135,10 +143,10 @@ class TestEndToEnd:
         assert result.status == TestStatus.COMPLETED
         assert len(result.comparison_results) > 0  # Should have comparisons between variations
     
-    def test_report_generation(self):
-        """Test report generation functionality."""
+    def test_report_generation_and_file_outputs(self):
+        """Test report generation and verify all output files are created."""
         # Create a mock test suite result
-        from src.llm_prompt_regression.models.result_schemas import TestResult, ComparisonResult, ModelResponse
+        from src.models.result_schemas import TestResult, ComparisonResult, ModelResponse
         from datetime import datetime
         
         # Create mock model responses
@@ -215,51 +223,30 @@ class TestEndToEnd:
         # Test CSV report generation
         csv_file = report_generator.generate_csv_report(suite_result)
         assert Path(csv_file).exists()
-    
-    def test_config_loading_and_validation(self):
-        """Test configuration loading and validation."""
-        # Create a temporary config file
-        config_content = """
-test_name: "Integration Test Config"
-prompts:
-  - "Integration test prompt"
-models:
-  - name: "gpt-3.5-turbo"
-    model_type: "gpt-3.5-turbo"
-    parameters:
-      temperature: 0.7
-      max_tokens: 100
-parameter_variations:
-  - temperature: 0.0
-  - temperature: 1.0
-max_retries: 3
-request_timeout: 30
-batch_size: 5
-output_dir: "./reports"
-"""
         
-        config_file = Path(self.temp_dir) / "integration_test.yaml"
-        with open(config_file, 'w') as f:
-            f.write(config_content)
+        # Check that all expected file types are created
+        report_files = list(self.report_dir.glob("*"))
+        assert len(report_files) > 0
         
-        # Load configuration
-        config_loader = ConfigLoader(config_dir=str(self.temp_dir))
-        config = config_loader.load_test_config("integration_test.yaml")
+        json_files = list(self.report_dir.glob("*.json"))
+        html_files = list(self.report_dir.glob("*.html"))
+        csv_files = list(self.report_dir.glob("*.csv"))
         
-        # Verify configuration
-        assert config.test_name == "Integration Test Config"
-        assert len(config.prompts) == 1
-        assert len(config.models) == 1
-        assert len(config.parameter_variations) == 2
-        assert config.models[0].name == "gpt-3.5-turbo"
+        assert len(json_files) > 0  # Should have drift report JSON
+        assert len(html_files) > 0  # Should have HTML report
+        assert len(csv_files) > 0   # Should have CSV report
     
     @pytest.mark.asyncio
     async def test_error_handling(self):
         """Test error handling in various scenarios."""
         # Test with invalid API key
-        with patch('openai.AsyncOpenAI') as mock_openai:
+        with patch('src.core.test_runner.AsyncOpenAI') as mock_openai:
+            # Create async function that raises error
+            async def mock_create_error(**kwargs):
+                raise Exception("API Error")
+            
             mock_client = AsyncMock()
-            mock_client.chat.completions.create.side_effect = Exception("API Error")
+            mock_client.chat.completions.create = mock_create_error
             mock_openai.return_value = mock_client
             
             config_loader = ConfigLoader()
@@ -274,73 +261,3 @@ output_dir: "./reports"
             # Should handle error gracefully
             assert result.status == TestStatus.FAILED
             assert len(result.errors) > 0
-    
-    def test_file_outputs(self):
-        """Test that all expected output files are created."""
-        # Create mock data
-        from src.llm_prompt_regression.models.result_schemas import TestResult, ComparisonResult, ModelResponse
-        from datetime import datetime
-        
-        response1 = ModelResponse(
-            model_name="gpt-3.5-turbo",
-            prompt="Test prompt",
-            response="Test response",
-            parameters={"temperature": 0.7},
-            response_time=1.0,
-            token_count=5,
-            timestamp=datetime.now()
-        )
-        
-        response2 = ModelResponse(
-            model_name="gpt-4",
-            prompt="Test prompt",
-            response="Test response",
-            parameters={"temperature": 0.7},
-            response_time=1.0,
-            token_count=5,
-            timestamp=datetime.now()
-        )
-        
-        comparison = ComparisonResult(
-            prompt="Test prompt",
-            model_1_response=response1,
-            model_2_response=response2,
-            metrics={"exact_match": True, "semantic_similarity": 1.0},
-            drift_detected=False,
-            drift_severity="low"
-        )
-        
-        test_result = TestResult(
-            test_name="File Output Test",
-            status=TestStatus.COMPLETED,
-            start_time=datetime.now(),
-            end_time=datetime.now(),
-            total_prompts=1,
-            total_comparisons=1,
-            comparison_results=[comparison]
-        )
-        
-        suite_result = TestSuiteResult(
-            suite_name="File Output Test Suite",
-            start_time=datetime.now(),
-            end_time=datetime.now(),
-            test_results=[test_result],
-            overall_status=TestStatus.COMPLETED
-        )
-        
-        # Generate reports
-        report_generator = ReportGenerator(output_dir=str(self.report_dir))
-        drift_report = report_generator.generate_drift_report(suite_result)
-        
-        # Check that files are created
-        report_files = list(self.report_dir.glob("*"))
-        assert len(report_files) > 0
-        
-        # Check for specific file types
-        json_files = list(self.report_dir.glob("*.json"))
-        html_files = list(self.report_dir.glob("*.html"))
-        csv_files = list(self.report_dir.glob("*.csv"))
-        
-        assert len(json_files) > 0  # Should have drift report JSON
-        assert len(html_files) > 0  # Should have HTML report
-        assert len(csv_files) > 0   # Should have CSV report

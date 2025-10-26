@@ -16,9 +16,8 @@ A comprehensive framework for testing LLM output consistency across different mo
 
 ### Prerequisites
 
-- Python 3.8+
+- Python 3.11+
 - OpenAI API key
-- Docker (optional)
 
 ### Installation
 
@@ -141,9 +140,9 @@ async def run_custom_test():
 asyncio.run(run_custom_test())
 ```
 
-## Docker Usage
+## Docker Usage (Optional)
 
-### Build and Run
+A minimal Docker setup is available for containerized testing:
 
 ```bash
 # Build the Docker image
@@ -156,20 +155,7 @@ docker run --rm \
   llm-prompt-regression
 
 # Using Docker Compose
-docker-compose up llm-prompt-regression
-```
-
-### Docker Compose Services
-
-```bash
-# Run tests
-docker-compose up llm-prompt-regression
-
-# Run specific test suite
-docker-compose run test-runner
-
-# Generate reports
-docker-compose run report-generator
+docker-compose up
 ```
 
 ## Configuration Options
@@ -250,10 +236,11 @@ reports/
 ```
 
 ## CI/CD Integration
+## CI/CD Integration
 
 ### GitHub Actions
 
-The framework includes a comprehensive CI/CD pipeline:
+The framework includes a streamlined CI/CD pipeline:
 
 ```yaml
 # .github/workflows/ci.yml
@@ -261,36 +248,23 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [main, develop]
-  schedule:
-    - cron: '0 2 * * *'  # Daily at 2 AM UTC
+  pull_request:
+    branches: [main, develop]
 ```
 
 **Pipeline Features:**
-- Code quality checks (linting, formatting, type checking)
-- Unit and integration tests
-- LLM regression testing
-- Security scanning
-- Docker image building
-- Automated reporting
+- Automated testing on Python 3.11 and 3.13
+- Unit and integration test coverage
+- Artifacts for test reports
 
 ### Setting up GitHub Actions
 
 1. **Add secrets to your repository:**
    - `OPENAI_API_KEY`: Your OpenAI API key
-   - `DOCKER_USERNAME`: Docker Hub username (optional)
-   - `DOCKER_PASSWORD`: Docker Hub password (optional)
 
-2. **Configure workflow triggers:**
-   - Push to main/develop branches
-   - Pull requests
-   - Scheduled daily runs
-   - Manual triggers
-
-3. **Monitor results:**
+2. **Monitor results:**
    - Check GitHub Actions tab for test results
    - Review generated reports in artifacts
-   - Set up notifications for failures
-
 ## Testing
 
 ### Run Tests
@@ -304,32 +278,26 @@ pytest tests/unit/
 
 # Run integration tests
 pytest tests/integration/
+## Testing
+
+### Run Tests
+
+```bash
+# Run all tests
+pytest
+
+# Run with verbose output
+pytest -v
 
 # Run with coverage
-pytest --cov=src/llm_prompt_regression --cov-report=html
+pytest --cov=src --cov-report=html
 ```
 
 ### Test Categories
 
-- **Unit Tests**: Test individual components
-- **Integration Tests**: Test component interactions
-- **End-to-End Tests**: Full workflow testing
-- **Mock Tests**: API-free testing with mocked responses
-
-## Project Structure
-
-```
-llm-prompt-regression/
-├── src/llm_prompt_regression/          # Main source code
-│   ├── core/                          # Core testing logic
-│   │   ├── test_runner.py             # Main test runner
-│   │   └── report_generator.py        # Report generation
-│   ├── models/                        # Data models
-│   │   ├── test_config.py             # Configuration models
-│   │   └── test_result.py             # Result models
-│   ├── utils/                         # Utility functions
+- **Unit Tests** (15 tests): Test individual components (metrics, config loader, validators)
+- **Integration Tests** (5 tests): Test component interactions and end-to-end workflowsns
 │   │   ├── metrics.py                 # Metrics calculation
-│   │   ├── validators.py              # Response validation
 │   │   ├── config_loader.py           # Configuration loading
 │   │   └── logger_setup.py            # Logging setup
 │   ├── cli.py                         # Command-line interface
@@ -350,14 +318,17 @@ llm-prompt-regression/
 └── README.md                          # This file
 ```
 
-### Development Setup
-
-```bash
-# Clone your fork
-git clone https://github.com/yourusername/llm-prompt-regression.git
-cd llm-prompt-regression
-
-# Create virtual environment
+├── examples/                          # Example scripts
+│   ├── run_basic_test.py              # Basic test example
+│   └── run_parameter_variation_test.py # Parameter test example
+├── config/                            # Test configurations
+│   ├── basic_test.yaml                # Basic test config
+│   ├── comprehensive_test_suite.yaml  # Full test suite
+│   └── parameter_variation_test.yaml  # Parameter tests
+├── .github/workflows/                 # GitHub Actions
+│   └── ci.yml                         # CI/CD pipeline
+├── Dockerfile                         # Docker configuration (optional)
+├── docker-compose.yml                 # Docker Compose setup (optional)
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 

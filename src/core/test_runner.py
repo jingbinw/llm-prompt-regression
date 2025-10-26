@@ -9,7 +9,7 @@ from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime
 from openai import AsyncOpenAI
 from langchain_openai import ChatOpenAI
-from langchain.schema import HumanMessage
+from langchain_core.messages import HumanMessage
 import tiktoken
 
 from ..models.config_schemas import TestConfig, ModelConfig
@@ -18,7 +18,6 @@ from ..models.result_schemas import (
     TestStatus, ComparisonMetric
 )
 from ..utils.metrics import MetricsCalculator
-from ..utils.validators import ResponseValidator
 
 
 logger = logging.getLogger(__name__)
@@ -37,12 +36,11 @@ class TestRunner:
             timeout: Request timeout in seconds
         """
         self.client = AsyncOpenAI(api_key=api_key)
+        self.client = AsyncOpenAI(api_key=api_key)
         self.max_retries = max_retries
         self.timeout = timeout
         self.metrics_calculator = MetricsCalculator()
-        self.validator = ResponseValidator()
         self.token_encoder = tiktoken.get_encoding("cl100k_base")
-        
     async def run_test(self, config: TestConfig) -> TestResult:
         """
         Run a single test configuration.
@@ -67,6 +65,10 @@ class TestRunner:
         try:
             # Generate all model responses
             all_responses = await self._generate_responses(config)
+            
+            # Check if we got any valid responses
+            if not all_responses:
+                raise Exception("Failed to generate any valid responses from models")
             
             # Perform comparisons
             comparison_results = []
@@ -110,12 +112,12 @@ class TestRunner:
         for model in config.models:
             for prompt in config.prompts:
                 # Base parameters
-                base_params = model.parameters.dict()
+                base_params = model.parameters.model_dump()
                 
                 # Add parameter variations
                 if config.parameter_variations:
                     for variation in config.parameter_variations:
-                        params = {**base_params, **variation.dict()}
+                        params = {**base_params, **variation.model_dump()}
                         task = self._generate_single_response(
                             model.name, prompt, params, config
                         )
@@ -175,7 +177,7 @@ class TestRunner:
                     timestamp=datetime.now(),
                     metadata={
                         "attempt": attempt + 1,
-                        "usage": response.usage.dict() if response.usage else None
+                        "usage": response.usage.model_dump() if response.usage else None
                     }
                 )
                 
@@ -212,17 +214,12 @@ class TestRunner:
         metrics[ComparisonMetric.TOKEN_COUNT] = token_diff
         
         # Response time difference
+        # Response time difference
         time_diff = abs(response1.response_time - response2.response_time)
         metrics[ComparisonMetric.RESPONSE_TIME] = time_diff
         
-        # Coherence scores (if available)
-        try:
-            coherence1 = await self.validator.validate_coherence(response1.response)
-            coherence2 = await self.validator.validate_coherence(response2.response)
-            metrics[ComparisonMetric.COHERENCE_SCORE] = abs(coherence1 - coherence2)
-        except Exception as e:
-            logger.warning(f"Could not calculate coherence scores: {str(e)}")
-            metrics[ComparisonMetric.COHERENCE_SCORE] = None
+        # Note: Coherence scoring removed for simplification
+        # Can be added back if needed with more sophisticated NLP tools
         
         # Determine if drift is detected
         drift_detected, severity, explanation = self._analyze_drift(metrics)

@@ -3,7 +3,7 @@ Test result models for storing and analyzing test outcomes.
 """
 
 from typing import List, Dict, Any, Optional, Union
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 from enum import Enum
 
@@ -39,8 +39,8 @@ class ModelResponse(BaseModel):
     timestamp: datetime = Field(default_factory=datetime.now, description="When the response was generated")
     metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "model_name": "gpt-3.5-turbo",
                 "prompt": "Explain quantum computing",
@@ -51,6 +51,7 @@ class ModelResponse(BaseModel):
                 "timestamp": "2024-01-01T12:00:00Z"
             }
         }
+    )
 
 
 class ComparisonResult(BaseModel):
@@ -66,8 +67,8 @@ class ComparisonResult(BaseModel):
     drift_explanation: Optional[str] = Field(default=None, description="Explanation of the drift")
     timestamp: datetime = Field(default_factory=datetime.now, description="When comparison was made")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "prompt": "Explain quantum computing",
                 "model_1_response": {...},
@@ -82,6 +83,7 @@ class ComparisonResult(BaseModel):
                 "drift_explanation": "Significant difference in response length"
             }
         }
+    )
 
 
 class TestResult(BaseModel):
@@ -101,8 +103,8 @@ class TestResult(BaseModel):
     errors: List[str] = Field(default_factory=list, description="Any errors encountered")
     metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional test metadata")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "test_name": "Basic Model Comparison",
                 "status": "completed",
@@ -119,6 +121,7 @@ class TestResult(BaseModel):
                 }
             }
         }
+    )
 
 
 class TestSuiteResult(BaseModel):
@@ -132,8 +135,8 @@ class TestSuiteResult(BaseModel):
     summary: Dict[str, Any] = Field(default_factory=dict, description="Suite summary statistics")
     metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional suite metadata")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "suite_name": "Comprehensive Model Comparison",
                 "start_time": "2024-01-01T12:00:00Z",
@@ -149,6 +152,7 @@ class TestSuiteResult(BaseModel):
                 }
             }
         }
+    )
 
 
 class DriftReport(BaseModel):
@@ -161,8 +165,8 @@ class DriftReport(BaseModel):
     recommendations: List[str] = Field(description="Recommendations based on findings")
     charts_data: Dict[str, Any] = Field(default_factory=dict, description="Data for generating charts")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "report_id": "report_2024_01_01_001",
                 "generated_at": "2024-01-01T12:30:00Z",
@@ -180,3 +184,4 @@ class DriftReport(BaseModel):
                 ]
             }
         }
+    )

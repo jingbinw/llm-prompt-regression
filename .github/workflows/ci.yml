@@ -69,13 +69,13 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         
-    - name: Verify API key
-      run: python examples/test_openai_key.py
+    - name: Run basic LLM test
+      run: python examples/run_basic_test.py
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         
-    - name: Run real LLM test
-      run: python examples/run_basic_test.py
+    - name: Run parameter variation test
+      run: python examples/run_parameter_variation_test.py
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         

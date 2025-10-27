@@ -37,9 +37,9 @@ async def main():
         
         # Customize for this example (low-token mode)
         config.test_name = "Basic Example Test (Low Token)"
-        # Use a single, short prompt that still yields comparable outputs
+        # Use a specific, answerable prompt to reduce randomness and drift
         config.prompts = [
-            "In 10 words, summarize machine learning."
+            "What is 2+2? Answer with just the number."
         ]
 
         # Use only two models for simplicity
@@ -52,12 +52,11 @@ async def main():
             # Optionally tighten sampling
             m.parameters.top_p = 0.8
 
-        # Minimal parameter variations: 2 variations that cover two values for each param
-        # This keeps total calls low while still exercising parameter handling.
+        # Minimal parameter variations: smaller range to reduce drift
         # Total calls = prompts (1) * models (2) * variations (2) = 4
         config.parameter_variations = [
-            ParameterConfig(temperature=0.0, top_p=0.7, max_tokens=24, description="Low temp, focused"),
-            ParameterConfig(temperature=1.0, top_p=1.0, max_tokens=24, description="High temp, diverse"),
+            ParameterConfig(temperature=0.3, top_p=0.7, max_tokens=24, description="Low temp, focused"),
+            ParameterConfig(temperature=0.7, top_p=0.9, max_tokens=24, description="Moderate temp, diverse"),
         ]
         # If you prefer full 2x2 orthogonal coverage (4 variations -> 8 calls), use below instead:
         # config.parameter_variations = [

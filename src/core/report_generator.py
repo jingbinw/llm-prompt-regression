@@ -253,13 +253,26 @@ class ReportGenerator:
                     if 'semantic_similarity' in c.metrics
                 ) / len(prompt_comparisons) if prompt_comparisons else 1.0,
                 "severity_breakdown": {"low": 0, "medium": 0, "high": 0},
-                "common_issues": []
+                "common_issues": [],
+                "comparisons": []  # Add detailed comparison info
             }
             
-            # Count severities
+            # Count severities and collect comparison details
             for comparison in prompt_comparisons:
                 if comparison.drift_detected:
                     prompt_analysis["severity_breakdown"][comparison.drift_severity] += 1
+                
+                # Add comparison details with parameters
+                prompt_analysis["comparisons"].append({
+                    "model_1": comparison.model_1_response.model_name,
+                    "model_2": comparison.model_2_response.model_name,
+                    "params_1": comparison.model_1_response.parameters,
+                    "params_2": comparison.model_2_response.parameters,
+                    "drift": comparison.drift_detected,
+                    "severity": comparison.drift_severity if comparison.drift_detected else "N/A",
+                    "similarity": comparison.metrics.get('semantic_similarity', 'N/A'),
+                    "explanation": comparison.drift_explanation
+                })
             
             # Identify common issues
             explanations = [c.drift_explanation for c in prompt_comparisons if c.drift_detected]
@@ -462,7 +475,47 @@ class ReportGenerator:
                 <tr><td>Drift Count</td><td>{analysis['drift_count']}</td></tr>
                 <tr><td>Average Similarity</td><td>{analysis['avg_similarity']:.2f}</td></tr>
             </table>
+            <h4>Comparison Details</h4>
+            <table>
+                <tr>
+                    <th>Model 1</th>
+                    <th>Temp 1</th>
+                    <th>Top-p 1</th>
+                    <th>Model 2</th>
+                    <th>Temp 2</th>
+                    <th>Top-p 2</th>
+                    <th>Similarity</th>
+                    <th>Drift</th>
+                    <th>Severity</th>
+                </tr>
             """
+            
+            # Add rows for each comparison
+            for comp in analysis.get('comparisons', []):
+                temp1 = comp['params_1'].get('temperature', 'N/A')
+                temp2 = comp['params_2'].get('temperature', 'N/A')
+                topp1 = comp['params_1'].get('top_p', 'N/A')
+                topp2 = comp['params_2'].get('top_p', 'N/A')
+                sim = comp['similarity']
+                sim_str = f"{sim:.2f}" if isinstance(sim, (int, float)) else str(sim)
+                drift_class = f"drift-{comp['severity']}" if comp['drift'] else ""
+                
+                detailed_analysis_html += f"""
+                <tr class="{drift_class}">
+                    <td>{comp['model_1']}</td>
+                    <td>{temp1}</td>
+                    <td>{topp1}</td>
+                    <td>{comp['model_2']}</td>
+                    <td>{temp2}</td>
+                    <td>{topp2}</td>
+                    <td>{sim_str}</td>
+                    <td>{"Yes" if comp['drift'] else "No"}</td>
+                    <td>{comp['severity']}</td>
+                </tr>
+                """
+            
+            detailed_analysis_html += "</table>"
+            
         
         return html_template.format(
             report_id=drift_report.report_id,

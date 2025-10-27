@@ -7,14 +7,14 @@ import os
 import sys
 from pathlib import Path
 
-# Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+# Ensure project root is on sys.path so we can import the 'src' package
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from core.test_runner import TestRunner
-from core.report_generator import ReportGenerator
-from utils.config_loader import ConfigLoader
-from utils.logger_setup import setup_logging
-from models.result_schemas import TestSuiteResult, TestStatus
+from src.core.test_runner import TestRunner
+from src.core.report_generator import ReportGenerator
+from src.utils.config_loader import ConfigLoader
+from src.utils.logger_setup import setup_logging
+from src.models.result_schemas import TestSuiteResult, TestStatus
 
 
 async def main():
@@ -34,15 +34,19 @@ async def main():
         config_loader = ConfigLoader()
         config = config_loader.create_parameter_variation_config()
         
-        # Customize for this example
-        config.test_name = "Parameter Variation Example"
+        # Customize for this example (low-token mode)
+        config.test_name = "Parameter Variation Example (Low Token)"
+        # Use single, shorter prompt to minimize token usage
         config.prompts = [
-            "Write a creative story about a robot learning to paint.",
-            "Explain the concept of machine learning to a 10-year-old."
+            "What is 5+3? Answer with just the number."
         ]
         
-        # Limit parameter variations for this example (to reduce API costs)
-        config.parameter_variations = config.parameter_variations[:8]  # First 8 variations
+        # Limit parameter variations and cap max_tokens (to reduce API costs)
+        config.parameter_variations = config.parameter_variations[:4]  # First 4 variations only
+        
+        # Force all variations to use small max_tokens
+        for variation in config.parameter_variations:
+            variation.max_tokens = min(variation.max_tokens or 50, 30)
         
         logger.info(f"Running test: {config.test_name}")
         logger.info(f"Testing {len(config.prompts)} prompts with {len(config.models)} model(s)")

@@ -15,6 +15,7 @@ from core.report_generator import ReportGenerator
 from utils.config_loader import ConfigLoader
 from utils.logger_setup import setup_logging
 from models.result_schemas import TestSuiteResult, TestStatus
+from models.config_schemas import ParameterConfig
 
 
 async def main():
@@ -34,22 +35,37 @@ async def main():
         config_loader = ConfigLoader()
         config = config_loader.create_default_config()
         
-        # Customize for this example
-        config.test_name = "Basic Example Test"
+        # Customize for this example (low-token mode)
+        config.test_name = "Basic Example Test (Low Token)"
+        # Use a single, short prompt that still yields comparable outputs
         config.prompts = [
-            "Explain machine learning in simple terms.",
-            "Write a haiku about artificial intelligence.",
-            "What are the benefits of renewable energy?"
+            "In 10 words, summarize machine learning."
         ]
-        
+
         # Use only two models for simplicity
         config.models = config.models[:2]
-        
-        # Add some parameter variations
+
+        # Force small outputs and consistent settings to minimize tokens
+        for m in config.models:
+            m.parameters.max_tokens = min(getattr(m.parameters, "max_tokens", 200) or 200, 32)
+            m.parameters.temperature = 0.2
+            # Optionally tighten sampling
+            m.parameters.top_p = 0.8
+
+        # Minimal parameter variations: 2 variations that cover two values for each param
+        # This keeps total calls low while still exercising parameter handling.
+        # Total calls = prompts (1) * models (2) * variations (2) = 4
         config.parameter_variations = [
-            {"temperature": 0.0, "description": "Deterministic"},
-            {"temperature": 1.0, "description": "Creative"}
+            ParameterConfig(temperature=0.0, top_p=0.7, max_tokens=24, description="Low temp, focused"),
+            ParameterConfig(temperature=1.0, top_p=1.0, max_tokens=24, description="High temp, diverse"),
         ]
+        # If you prefer full 2x2 orthogonal coverage (4 variations -> 8 calls), use below instead:
+        # config.parameter_variations = [
+        #     ParameterConfig(temperature=0.0, top_p=0.7, max_tokens=24, description="T0.0, p0.7"),
+        #     ParameterConfig(temperature=1.0, top_p=0.7, max_tokens=24, description="T1.0, p0.7"),
+        #     ParameterConfig(temperature=0.0, top_p=1.0, max_tokens=24, description="T0.0, p1.0"),
+        #     ParameterConfig(temperature=1.0, top_p=1.0, max_tokens=24, description="T1.0, p1.0"),
+        # ]
         
         logger.info(f"Running test: {config.test_name}")
         logger.info(f"Testing {len(config.prompts)} prompts with {len(config.models)} models")

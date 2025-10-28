@@ -37,9 +37,9 @@ async def main():
         
         # Customize for this example (low-token mode)
         config.test_name = "Basic Example Test (Low Token)"
-        # Use a specific, answerable prompt to reduce randomness and drift
+        # Use a prompt that allows for variation but stays concise
         config.prompts = [
-            "What is 2+2? Answer with just the number."
+            "Explain 'regression testing' in one sentence."
         ]
 
         # Use only two models for simplicity

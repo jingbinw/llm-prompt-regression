@@ -36,9 +36,9 @@ async def main():
         
         # Customize for this example (low-token mode)
         config.test_name = "Parameter Variation Example (Low Token)"
-        # Use single, shorter prompt to minimize token usage
+        # Use a prompt that shows parameter effects but stays concise
         config.prompts = [
-            "What is 5+3? Answer with just the number."
+            "Define 'API' in technical terms, max 15 words."
         ]
         
         # Limit parameter variations and cap max_tokens (to reduce API costs)

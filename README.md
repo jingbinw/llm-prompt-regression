@@ -44,7 +44,44 @@ A comprehensive framework for testing LLM output consistency across different mo
    python examples/run_basic_test.py
    ```
 
+   This will run a minimal test (4 API calls, ~160 tokens) to verify your setup.
+
+5. **Run parameter variation test (optional)**
+   ```bash
+   python examples/run_parameter_variation_test.py
+   ```
+
+   This tests different parameter combinations (4 API calls, ~160 tokens).
+
 ## Usage
+
+### Example Scripts
+
+The framework includes optimized example scripts with minimal token usage:
+
+#### Basic Test Example
+```bash
+python examples/run_basic_test.py
+```
+
+**Configuration:**
+- 1 simple prompt: "What is 2+2? Answer with just the number."
+- 2 models: gpt-3.5-turbo and gpt-4
+- 2 parameter variations: temperature 0.3/0.7
+- **Total: 4 API calls, ~160 tokens**
+
+#### Parameter Variation Test Example
+```bash
+python examples/run_parameter_variation_test.py
+```
+
+**Configuration:**
+- 1 simple prompt: "What is 5+3? Answer with just the number."
+- 1 model: gpt-3.5-turbo
+- 4 parameter variations: testing temperature and top_p
+- **Total: 4 API calls, ~160 tokens**
+
+Both examples are optimized for low token usage while demonstrating core functionality.
 
 ### Command Line Interface
 
@@ -240,63 +277,88 @@ reports/
 
 ### GitHub Actions
 
-The framework includes a streamlined CI/CD pipeline:
+The framework includes a streamlined CI/CD pipeline with automated LLM testing:
 
 ```yaml
 # .github/workflows/ci.yml
-name: CI/CD Pipeline
+name: CI Pipeline
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
-    branches: [main, develop]
+    branches: [main]
 ```
 
 **Pipeline Features:**
-- Automated testing on Python 3.11 and 3.13
-- Unit and integration test coverage
-- Artifacts for test reports
+- **Test Job**: Runs unit and integration tests with mocked API calls (no token cost)
+- **LLM Regression Test Job** (on push to main only):
+  - Runs `run_basic_test.py` (4 API calls, ~160 tokens)
+  - Runs `run_parameter_variation_test.py` (4 API calls, ~160 tokens)
+  - **Total per CI run: 8 API calls, ~320 tokens**
+  - Uploads HTML/CSV reports and charts as artifacts
+  - Can be skipped with "skip-llm" in commit message
+- **Docker Test Job** (optional): Builds and tests in Docker container
 
 ### Setting up GitHub Actions
 
 1. **Add secrets to your repository:**
-   - `OPENAI_API_KEY`: Your OpenAI API key
+   - Go to Settings → Secrets and variables → Actions
+   - Add `OPENAI_API_KEY` with your OpenAI API key
 
 2. **Monitor results:**
    - Check GitHub Actions tab for test results
-   - Review generated reports in artifacts
+   - Download report artifacts from completed runs
+   - Review drift analysis and parameter effects
 ## Testing
 
-### Run Tests
+### Run Tests Locally
 
 ```bash
-# Run all tests
-pytest
+# Activate your virtual environment (if not already activated)
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Run unit tests only
-pytest tests/unit/
-
-# Run integration tests
-pytest tests/integration/
-## Testing
-
-### Run Tests
-
-```bash
-# Run all tests
-pytest
-
-# Run with verbose output
-pytest -v
+# Run all tests (mocked, no API calls)
+pytest tests/ -v
 
 # Run with coverage
-pytest --cov=src --cov-report=html
+pytest tests/ --cov=src --cov-report=html --cov-report=term
+
+# Run specific test categories
+pytest tests/unit/ -v        # Unit tests only
+pytest tests/integration/ -v # Integration tests only
 ```
 
 ### Test Categories
 
-- **Unit Tests** (15 tests): Test individual components (metrics, config loader, validators)
-- **Integration Tests** (5 tests): Test component interactions and end-to-end workflowsns
+- **Unit Tests**: Test individual components (metrics, config loader, validators)
+  - All API calls are mocked
+  - No OpenAI API key required
+  - Fast execution (~5 seconds)
+
+- **Integration Tests**: Test component interactions and end-to-end workflows
+  - All API calls are mocked
+  - No OpenAI API key required
+  - Medium execution (~10 seconds)
+
+**Total: 20 tests, all passing, zero token cost**
+
+### Example Tests (Real API Calls)
+
+```bash
+# Set your API key
+export OPENAI_API_KEY="your-key-here"
+
+# Run basic test example (4 calls, ~160 tokens)
+python examples/run_basic_test.py
+
+# Run parameter variation test (4 calls, ~160 tokens)
+python examples/run_parameter_variation_test.py
+
+# Verify API key is working (1 call, ~10 tokens)
+python examples/test_openai_key.py
+```
+
+These examples make real API calls and generate reports in `./reports/`.
 │   │   ├── metrics.py                 # Metrics calculation
 │   │   ├── config_loader.py           # Configuration loading
 │   │   └── logger_setup.py            # Logging setup
@@ -319,14 +381,12 @@ pytest --cov=src --cov-report=html
 ```
 
 ├── examples/                          # Example scripts
-│   ├── run_basic_test.py              # Basic test example
-│   └── run_parameter_variation_test.py # Parameter test example
-├── config/                            # Test configurations
-│   ├── basic_test.yaml                # Basic test config
-│   ├── comprehensive_test_suite.yaml  # Full test suite
-│   └── parameter_variation_test.yaml  # Parameter tests
+│   ├── run_basic_test.py              # Basic test (4 calls, ~160 tokens)
+│   ├── run_parameter_variation_test.py # Parameter test (4 calls, ~160 tokens)
+│   └── test_openai_key.py             # API key verification (1 call, ~10 tokens)
 ├── .github/workflows/                 # GitHub Actions
-│   └── ci.yml                         # CI/CD pipeline
+│   ├── ci.yml                         # CI/CD pipeline
+│   └── release.yml                    # Release workflow
 ├── Dockerfile                         # Docker configuration (optional)
 ├── docker-compose.yml                 # Docker Compose setup (optional)
 python -m venv venv

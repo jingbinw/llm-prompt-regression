@@ -63,7 +63,7 @@ async def main():
             if variation.max_tokens is not None:
                 params.append(f"max_tokens={variation.max_tokens}")
             
-            logger.info(f"  {i}. {', '.join(params)} - {variation.description}")
+            logger.info(f"  {i}. {', '.join(params)}")
         
         # Run the test
         runner = TestRunner(api_key, max_retries=3, timeout=30)

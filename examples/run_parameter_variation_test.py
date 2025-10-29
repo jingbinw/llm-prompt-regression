@@ -35,7 +35,7 @@ async def main():
         config = config_loader.create_parameter_variation_config()
         
         # Customize for this example (low-token mode)
-        config.test_name = "Parameter Variation Example (Low Token)"
+        config.test_name = "Temperature and Top-P Parameter Impact Analysis"
         # Use a prompt that shows parameter effects but stays concise
         config.prompts = [
             "Define 'API' in technical terms, max 15 words."

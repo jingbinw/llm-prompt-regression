@@ -1,8 +1,16 @@
 """
 Metrics calculation utilities for comparing LLM responses.
+
+Supports two paths for semantic similarity:
+- Default: TF-IDF + cosine similarity (no token cost)
+- Optional: LangChain OpenAIEmbeddings + cosine similarity (token cost)
+
+Enable embeddings via constructor (use_embeddings=True) or env USE_EMBEDDINGS=true.
+If embeddings are unavailable or fail, it silently falls back to TF-IDF.
 """
 
 import asyncio
+import os
 import re
 from typing import Dict, Any, List, Tuple
 import numpy as np
@@ -10,42 +18,80 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import tiktoken
 
+# Optional LangChain embeddings (used only if enabled and installed)
+try:  # pragma: no cover - import availability depends on environment
+    from langchain_openai import OpenAIEmbeddings  # type: ignore
+except Exception:  # pragma: no cover
+    OpenAIEmbeddings = None  # type: ignore
+
 
 class MetricsCalculator:
-    """Calculator for various metrics to compare LLM responses."""
-    
-    def __init__(self):
+    """Calculator for various metrics to compare LLM responses.
+
+    Args:
+        use_embeddings: If True, try to use LangChain OpenAIEmbeddings for
+            semantic similarity (token cost). If False, use TF-IDF only.
+            If None, read from env USE_EMBEDDINGS (default False).
+    """
+
+    def __init__(self, use_embeddings: bool | None = None):
         self.token_encoder = tiktoken.get_encoding("cl100k_base")
         self.tfidf_vectorizer = TfidfVectorizer(
             stop_words='english',
             ngram_range=(1, 2),
             max_features=1000
         )
+
+        # Determine whether to enable embeddings
+        if use_embeddings is None:
+            use_embeddings = os.getenv("USE_EMBEDDINGS", "false").lower() in {"1", "true", "yes"}
+
+        # Initialize embeddings client if requested and available
+        self._embeddings = None
+        if use_embeddings and OpenAIEmbeddings is not None:
+            try:  # pragma: no cover - external service init
+                self._embeddings = OpenAIEmbeddings()
+            except Exception:
+                # Fallback will be TF-IDF if initialization fails
+                self._embeddings = None
     
     async def calculate_semantic_similarity(self, text1: str, text2: str) -> float:
         """
-        Calculate semantic similarity between two texts using TF-IDF and cosine similarity.
-        
-        Args:
-            text1: First text
-            text2: Second text
-            
-        Returns:
-            Similarity score between 0 and 1
+        Calculate semantic similarity between two texts.
+
+        Preference order:
+        1) If LangChain OpenAIEmbeddings is enabled and available, use embeddings
+           with cosine similarity (token cost).
+        2) Otherwise, use TF-IDF + cosine similarity (no token cost).
+        3) On failure, fall back to simple word overlap ratio.
+
+        Returns a score between 0 and 1.
         """
+        # Attempt embeddings-based similarity if configured
+        if self._embeddings is not None:
+            try:  # pragma: no cover - external call
+                clean1 = self._clean_text(text1)
+                clean2 = self._clean_text(text2)
+                v1, v2 = await asyncio.gather(
+                    asyncio.to_thread(self._embeddings.embed_query, clean1),
+                    asyncio.to_thread(self._embeddings.embed_query, clean2),
+                )
+                v1 = np.array(v1).reshape(1, -1)
+                v2 = np.array(v2).reshape(1, -1)
+                similarity = float(cosine_similarity(v1, v2)[0][0])
+                # Normalize to [0,1] bounds just in case
+                return max(0.0, min(1.0, similarity))
+            except Exception:
+                # If embeddings path fails, fall through to TF-IDF
+                pass
+
+        # TF-IDF similarity (default path)
         try:
-            # Clean and prepare texts
             texts = [self._clean_text(text1), self._clean_text(text2)]
-            
-            # Calculate TF-IDF vectors
             tfidf_matrix = self.tfidf_vectorizer.fit_transform(texts)
-            
-            # Calculate cosine similarity
             similarity = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0]
-            
             return float(similarity)
-            
-        except Exception as e:
+        except Exception:
             # Fallback to simple word overlap
             return self._calculate_word_overlap(text1, text2)
     

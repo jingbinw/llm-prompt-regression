@@ -36,7 +36,7 @@ async def main():
         config = config_loader.create_default_config()
         
         # Customize for this example (low-token mode)
-        config.test_name = "Basic Example Test (Low Token)"
+        config.test_name = "Multi-Model Regression Test with Parameter Variations"
         # Use a prompt that allows for variation but stays concise
         config.prompts = [
             "Explain 'regression testing' in one sentence."

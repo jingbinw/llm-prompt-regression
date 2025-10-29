@@ -343,15 +343,12 @@ class ReportGenerator:
                 "Review and potentially revise these prompts for better consistency."
             )
         
-        # General recommendations
+        # General recommendation if no specific issues found
         if not recommendations:
-            recommendations.append("Overall drift levels are within acceptable ranges. Continue monitoring.")
-        
-        recommendations.extend([
-            "Implement automated drift detection in CI/CD pipeline",
-            "Set up alerts for high-severity drift detection",
-            "Regular model performance benchmarking recommended"
-        ])
+            recommendations.append(
+                "No significant drift detected. Model outputs are consistent across test cases. "
+                "Continue monitoring for future changes."
+            )
         
         return recommendations
     

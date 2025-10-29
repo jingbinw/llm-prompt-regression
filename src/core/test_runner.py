@@ -8,8 +8,6 @@ import logging
 from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime
 from openai import AsyncOpenAI
-from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage
 import tiktoken
 
 from ..models.config_schemas import TestConfig, ModelConfig
@@ -35,7 +33,6 @@ class TestRunner:
             max_retries: Maximum number of retries for failed requests
             timeout: Request timeout in seconds
         """
-        self.client = AsyncOpenAI(api_key=api_key)
         self.client = AsyncOpenAI(api_key=api_key)
         self.max_retries = max_retries
         self.timeout = timeout

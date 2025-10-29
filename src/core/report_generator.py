@@ -399,6 +399,7 @@ class ReportGenerator:
             <style>
                 body {{ font-family: Arial, sans-serif; margin: 40px; }}
                 .header {{ background-color: #f4f4f4; padding: 20px; border-radius: 5px; }}
+                .test-name {{ font-size: 1.2em; color: #1976d2; margin-top: 10px; }}
                 .section {{ margin: 20px 0; }}
                 .metric {{ display: inline-block; margin: 10px; padding: 15px; background-color: #e8f4f8; border-radius: 5px; }}
                 .drift-high {{ color: #d32f2f; }}
@@ -412,6 +413,7 @@ class ReportGenerator:
         <body>
             <div class="header">
                 <h1>LLM Prompt Drift Report</h1>
+                <p class="test-name"><strong>Test Name:</strong> {test_name}</p>
                 <p><strong>Report ID:</strong> {report_id}</p>
                 <p><strong>Generated:</strong> {generated_at}</p>
             </div>
@@ -515,10 +517,14 @@ class ReportGenerator:
                 """
             
             detailed_analysis_html += "</table>"
-            
+        
+        # Collect test names from all test results
+        test_names = [test_result.test_name for test_result in drift_report.test_suite_result.test_results]
+        test_name_display = ", ".join(test_names) if test_names else "N/A"
         
         return html_template.format(
             report_id=drift_report.report_id,
+            test_name=test_name_display,
             generated_at=drift_report.generated_at.strftime("%Y-%m-%d %H:%M:%S"),
             total_comparisons=summary['total_comparisons'],
             drift_count=summary['drift_detected_count'],

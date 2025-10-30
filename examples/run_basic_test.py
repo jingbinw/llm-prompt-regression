@@ -24,7 +24,10 @@ async def main():
     logger = setup_logging(log_level="INFO")
     logger.info("Starting basic regression test example")
     
-    # Check for API key
+    # Create config loader first to load environment variables
+    config_loader = ConfigLoader()
+    
+    # Check for API key (after environment is loaded)
     api_key = os.getenv('OPENAI_API_KEY')
     if not api_key:
         logger.error("Please set OPENAI_API_KEY environment variable")
@@ -32,7 +35,6 @@ async def main():
     
     try:
         # Create test configuration
-        config_loader = ConfigLoader()
         config = config_loader.create_default_config()
         
         # Customize for this example (low-token mode)

@@ -27,13 +27,24 @@ class ConfigLoader:
         self._load_environment()
     
     def _load_environment(self):
-        """Load environment variables."""
-        # Try to load from .env file
+        """Load environment variables from project root."""
+        # Find project root by looking for common project files
+        current_dir = Path.cwd()
+        project_root = current_dir
+        
+        for parent in [current_dir] + list(current_dir.parents):
+            if any((parent / file).exists() for file in ['pyproject.toml', 'requirements.txt', '.git']):
+                project_root = parent
+                break
+        
+        # Load from both .env and env.example files
+        # Load .env first (highest priority), then env.example (fallback for missing values)
         env_files = [".env", "env.example"]
         for env_file in env_files:
-            if os.path.exists(env_file):
-                load_dotenv(env_file)
-                break
+            env_path = project_root / env_file
+            if env_path.exists():
+                # override=False means existing environment variables won't be overwritten
+                load_dotenv(env_path, override=False)
     def load_test_config(self, config_file: str) -> TestConfig:
         """
         Load test configuration from file.
@@ -278,28 +289,3 @@ class ConfigLoader:
                 json.dump(config_dict, f, indent=2, ensure_ascii=False)
         else:
             raise ValueError(f"Unsupported format: {format}")
-    
-    def get_environment_config(self) -> Dict[str, Any]:
-        """
-        Get configuration from environment variables.
-        
-        Returns:
-            Dictionary of environment-based configuration
-        """
-        return {
-            'api_key': os.getenv('OPENAI_API_KEY'),
-            'default_model_1': os.getenv('DEFAULT_MODEL_1', 'gpt-3.5-turbo'),
-            'default_model_2': os.getenv('DEFAULT_MODEL_2', 'gpt-4'),
-            'default_temperature_1': float(os.getenv('DEFAULT_TEMPERATURE_1', '0.0')),
-            'default_temperature_2': float(os.getenv('DEFAULT_TEMPERATURE_2', '1.0')),
-            'default_top_p_1': float(os.getenv('DEFAULT_TOP_P_1', '0.5')),
-            'default_top_p_2': float(os.getenv('DEFAULT_TOP_P_2', '1.0')),
-            'default_max_tokens_1': int(os.getenv('DEFAULT_MAX_TOKENS_1', '100')),
-            'default_max_tokens_2': int(os.getenv('DEFAULT_MAX_TOKENS_2', '200')),
-            'max_retries': int(os.getenv('MAX_RETRIES', '3')),
-            'request_timeout': int(os.getenv('REQUEST_TIMEOUT', '30')),
-            'batch_size': int(os.getenv('BATCH_SIZE', '5')),
-            'output_dir': os.getenv('REPORT_OUTPUT_DIR', './reports'),
-            'log_level': os.getenv('LOG_LEVEL', 'INFO'),
-            'ci_mode': os.getenv('CI_MODE', 'false').lower() == 'true'
-        }

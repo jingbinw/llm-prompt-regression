@@ -27,26 +27,38 @@ A comprehensive framework for testing LLM output consistency across different mo
    cd llm-prompt-regression
    ```
 
-2. **Install dependencies**
+2. **Create and activate virtual environment**
+   ```bash
+   # create virtural environment
+   python -m venv venv
+
+   # activate it on Mac/Linux:
+   source venv/bin/activate
+
+   # activate it on Windows: 
+   venv\Scripts\activate
+   ```
+
+3. **Install dependencies**
    ```bash
    pip install -r requirements.txt
    ```
 
-3. **Set up environment variables**
+4. **Set up environment variables**
    ```bash
    cp env.example .env
-   # Edit .env and add your OpenAI API key
-   export OPENAI_API_KEY="your-api-key-here"
+   # Edit .env and add your OpenAI API key: OPENAI_API_KEY=your-api-key-here
+   # The example scripts will automatically load .env via python-dotenv
    ```
 
-4. **Run a basic test**
+5. **Run a basic test**
    ```bash
    python examples/run_basic_test.py
    ```
 
    This will run a minimal test (4 API calls, ~160 tokens) to verify your setup.
 
-5. **Run parameter variation test (optional)**
+6. **Run parameter variation test (optional)**
    ```bash
    python examples/run_parameter_variation_test.py
    ```
@@ -65,7 +77,7 @@ python examples/run_basic_test.py
 ```
 
 **Configuration:**
-- 1 simple prompt: "What is 2+2? Answer with just the number."
+- 1 technical prompt: "Explain 'regression testing' in one sentence."
 - 2 models: gpt-3.5-turbo and gpt-4
 - 2 parameter variations: temperature 0.3/0.7
 - **Total: 4 API calls, ~160 tokens**
@@ -76,7 +88,7 @@ python examples/run_parameter_variation_test.py
 ```
 
 **Configuration:**
-- 1 simple prompt: "What is 5+3? Answer with just the number."
+- 1 technical prompt: "Define 'API' in technical terms, max 15 words."
 - 1 model: gpt-3.5-turbo
 - 4 parameter variations: testing temperature and top_p
 - **Total: 4 API calls, ~160 tokens**
@@ -89,13 +101,13 @@ The framework provides a comprehensive CLI for running tests:
 
 ```bash
 # Run default test configuration
-python -m src.llm_prompt_regression.cli run
+python -m src.cli run
 
 # Run specific configuration file
-python -m src.llm_prompt_regression.cli run --config my_test.yaml
+python -m src.cli run --config my_test.yaml
 
 # Run with custom parameters
-python -m src.llm_prompt_regression.cli run \
+python -m src.cli run \
   --model1 gpt-3.5-turbo \
   --model2 gpt-4 \
   --prompts "Explain AI" "What is machine learning?" \
@@ -103,14 +115,14 @@ python -m src.llm_prompt_regression.cli run \
   --temperature2 1.0
 
 # Run test suite
-python -m src.llm_prompt_regression.cli run-suite \
+python -m src.cli run-suite \
   --config my_test_suite.yaml
 
 # Generate reports from existing results
-python -m src.llm_prompt_regression.cli report --input reports/results.json
+python -m src.cli report --input reports/results.json
 
 # Create configuration files
-python -m src.llm_prompt_regression.cli config --create-default
+python -m src.cli config --create-default
 ```
 
 ### Configuration Files
@@ -149,34 +161,6 @@ batch_size: 5
 output_dir: "./reports"
 ```
 
-### Programmatic Usage
-
-```python
-import asyncio
-from llm_prompt_regression import TestRunner, ConfigLoader, ReportGenerator
-
-async def run_custom_test():
-    # Load configuration
-    config_loader = ConfigLoader()
-    config = config_loader.create_default_config()
-    
-    # Customize configuration
-    config.prompts = ["Your custom prompt here"]
-    
-    # Run tests
-    runner = TestRunner(api_key="your-api-key")
-    result = await runner.run_test(config)
-    
-    # Generate reports
-    report_generator = ReportGenerator()
-    report = report_generator.generate_drift_report(result)
-    
-    return report
-
-# Run the test
-asyncio.run(run_custom_test())
-```
-
 ## Docker Usage (Optional)
 
 A minimal Docker setup is available for containerized testing:
@@ -195,64 +179,15 @@ docker run --rm \
 docker-compose up
 ```
 
-## Configuration Options
-
-### Model Configuration
-
-```yaml
-models:
-  - name: "gpt-3.5-turbo"
-    model_type: "gpt-3.5-turbo"
-    parameters:
-      temperature: 0.7      # 0.0 to 2.0
-      top_p: 1.0           # 0.0 to 1.0
-      max_tokens: 200      # > 0
-      frequency_penalty: 0.0  # -2.0 to 2.0
-      presence_penalty: 0.0   # -2.0 to 2.0
-    description: "Model description"
-```
-
-### Parameter Variations
-
-Test how different parameters affect output consistency:
-
-```yaml
-parameter_variations:
-  # Temperature variations
-  - temperature: 0.0
-    description: "Deterministic"
-  - temperature: 1.0
-    description: "Creative"
-  
-  # Top-p variations
-  - top_p: 0.5
-    description: "Focused sampling"
-  - top_p: 1.0
-    description: "Maximum diversity"
-  
-  # Max tokens variations
-  - max_tokens: 100
-    description: "Short response"
-  - max_tokens: 500
-    description: "Long response"
-  
-  # Combined variations
-  - temperature: 0.0
-    top_p: 0.5
-    max_tokens: 100
-    description: "Conservative + Focused + Short"
-```
-
 ## Reports and Metrics
 
 The framework generates comprehensive reports including:
 
 ### Drift Metrics
 - **Exact Match**: Whether responses are identical
-- **Semantic Similarity**: TF-IDF based similarity score
+- **Semantic Similarity**: TF-IDF based similarity score (or optional OpenAI embeddings)
 - **Token Count Difference**: Length variation between responses
 - **Response Time Difference**: Performance comparison
-- **Coherence Score**: Response quality assessment
 
 ### Report Formats
 - **HTML Report**: Interactive dashboard with visualizations
@@ -272,7 +207,6 @@ reports/
 └── report_20240101_120000_response_time.png
 ```
 
-## CI/CD Integration
 ## CI/CD Integration
 
 ### GitHub Actions
@@ -309,6 +243,15 @@ on:
    - Check GitHub Actions tab for test results
    - Download report artifacts from completed runs
    - Review drift analysis and parameter effects
+## LangChain usage
+
+- Real LLM runs: By default they do NOT use LangChain. They use TF‑IDF cosine similarity unless you explicitly enable embeddings (via `USE_EMBEDDINGS=true` or `MetricsCalculator(use_embeddings=True)`).
+- Unit/integration tests: They never use LangChain; they run fully locally with TF‑IDF and mocked API calls (zero token cost).
+
+To enable embeddings in real runs (incurs token cost):
+- macOS zsh: `export USE_EMBEDDINGS=true`
+- Or construct explicitly in code: `MetricsCalculator(use_embeddings=True)`
+
 ## Testing
 
 ### Run Tests Locally
@@ -345,8 +288,8 @@ pytest tests/integration/ -v # Integration tests only
 ### Example Tests (Real API Calls)
 
 ```bash
-# Set your API key
-export OPENAI_API_KEY="your-key-here"
+# API key should already be set in .env file from Installation step 4
+# If not, edit .env and add: OPENAI_API_KEY=your-api-key-here
 
 # Run basic test example (4 calls, ~160 tokens)
 python examples/run_basic_test.py
@@ -356,52 +299,7 @@ python examples/run_parameter_variation_test.py
 
 # Verify API key is working (1 call, ~10 tokens)
 python examples/test_openai_key.py
-```
-
-These examples make real API calls and generate reports in `./reports/`.
-│   │   ├── metrics.py                 # Metrics calculation
-│   │   ├── config_loader.py           # Configuration loading
-│   │   └── logger_setup.py            # Logging setup
-│   ├── cli.py                         # Command-line interface
-│   └── __init__.py
-├── tests/                             # Test files
-│   ├── unit/                          # Unit tests
-│   └── integration/                   # Integration tests
-├── examples/                          # Example scripts
-│   ├── run_basic_test.py              # Basic test example
-│   └── run_parameter_variation_test.py # Parameter test example
-├── .github/workflows/                 # GitHub Actions
-│   ├── ci.yml                         # CI/CD pipeline
-│   └── release.yml                    # Release workflow
-├── Dockerfile                         # Docker configuration
-├── docker-compose.yml                 # Docker Compose setup
-├── requirements.txt                   # Python dependencies
-├── pyproject.toml                     # Project configuration
-└── README.md                          # This file
-```
-
-├── examples/                          # Example scripts
-│   ├── run_basic_test.py              # Basic test (4 calls, ~160 tokens)
-│   ├── run_parameter_variation_test.py # Parameter test (4 calls, ~160 tokens)
-│   └── test_openai_key.py             # API key verification (1 call, ~10 tokens)
-├── .github/workflows/                 # GitHub Actions
-│   ├── ci.yml                         # CI/CD pipeline
-│   └── release.yml                    # Release workflow
-├── Dockerfile                         # Docker configuration (optional)
-├── docker-compose.yml                 # Docker Compose setup (optional)
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install development dependencies
-pip install -r requirements.txt
-pip install -e .
-
-# Install pre-commit hooks
-pre-commit install
-
-# Run tests
-pytest
-```
+``` 
 
 ## License
 

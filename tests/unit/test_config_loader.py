@@ -149,24 +149,20 @@ output_dir: "./reports"
         loaded_config = self.loader.load_test_config("saved_config.json")
         assert loaded_config.test_name == "Saved JSON Config"
     
-    def test_get_environment_config(self):
-        """Test getting configuration from environment variables."""
-        # Set some test environment variables
-        os.environ['TEST_OPENAI_API_KEY'] = 'test-key-123'
-        os.environ['TEST_DEFAULT_MODEL'] = 'gpt-3.5-turbo'
-        os.environ['TEST_MAX_RETRIES'] = '5'
-
-        # Create a basic config and save it first into a temporary directory
-        config = self.loader.create_default_config()
-        config.test_name = "Environment Test Config"
-        output_file = Path(self.temp_dir) / "env_test_config.json"
-        self.loader.save_config(config, str(output_file), format='json')
-
-        # Load it back and verify it exists
-        loaded_config = self.loader.load_test_config("env_test_config.json")
-        assert loaded_config.test_name == "Environment Test Config"
-
-        # Clean up environment variables
-        del os.environ['TEST_OPENAI_API_KEY']
-        del os.environ['TEST_DEFAULT_MODEL']
-        del os.environ['TEST_MAX_RETRIES']
+    def test_environment_loading_from_env_example(self):
+        """Test loading environment variables from env.example (safe for CI)."""
+        # Create a fresh loader to load environment
+        loader = ConfigLoader()
+        
+        # Test that env.example variables are available
+        assert os.getenv('MAX_RETRIES') == '3'
+        assert os.getenv('REQUEST_TIMEOUT') == '30'
+        assert os.getenv('BATCH_SIZE') == '5'
+        assert os.getenv('REPORT_OUTPUT_DIR') == './reports'
+        
+        # Test that config uses these values
+        config = loader.create_default_config()
+        assert config.max_retries == 3
+        assert config.request_timeout == 30
+        assert config.batch_size == 5
+        assert config.output_dir == './reports'

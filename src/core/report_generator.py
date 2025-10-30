@@ -466,8 +466,10 @@ class ReportGenerator:
         # Generate detailed analysis HTML
         detailed_analysis_html = ""
         for analysis in drift_report.detailed_analysis:
+            prompt_text = analysis['prompt']
+            # Show full prompt but make it clear this is the prompt being analyzed
             detailed_analysis_html += f"""
-            <h3>{analysis['prompt'][:100]}...</h3>
+            <h3>Prompt: "{prompt_text}"</h3>
             <table>
                 <tr><th>Metric</th><th>Value</th></tr>
                 <tr><td>Total Comparisons</td><td>{analysis['total_comparisons']}</td></tr>

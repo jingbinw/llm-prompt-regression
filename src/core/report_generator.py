@@ -268,6 +268,8 @@ class ReportGenerator:
                     "model_2": comparison.model_2_response.model_name,
                     "params_1": comparison.model_1_response.parameters,
                     "params_2": comparison.model_2_response.parameters,
+                    "response_1": comparison.model_1_response.response,
+                    "response_2": comparison.model_2_response.response,
                     "drift": comparison.drift_detected,
                     "severity": comparison.drift_severity if comparison.drift_detected else "N/A",
                     "similarity": comparison.metrics.get('semantic_similarity', 'N/A'),
@@ -402,6 +404,18 @@ class ReportGenerator:
                 .drift-high {{ color: #d32f2f; }}
                 .drift-medium {{ color: #f57c00; }}
                 .drift-low {{ color: #388e3c; }}
+                .response-text {{ 
+                    background-color: #f9f9f9; 
+                    padding: 10px; 
+                    border-left: 3px solid #ccc; 
+                    margin: 5px 0; 
+                    font-family: monospace; 
+                    white-space: pre-wrap; 
+                    max-height: 200px; 
+                    overflow-y: auto;
+                }}
+                .response-container {{ margin: 10px 0; }}
+                .response-label {{ font-weight: bold; margin-bottom: 5px; }}
                 table {{ border-collapse: collapse; width: 100%; }}
                 th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
                 th {{ background-color: #f2f2f2; }}
@@ -488,6 +502,8 @@ class ReportGenerator:
                     <th>Similarity</th>
                     <th>Drift</th>
                     <th>Severity</th>
+                    <th>Model 1 Response</th>
+                    <th>Model 2 Response</th>
                 </tr>
             """
             
@@ -501,6 +517,12 @@ class ReportGenerator:
                 sim_str = f"{sim:.2f}" if isinstance(sim, (int, float)) else str(sim)
                 drift_class = f"drift-{comp['severity']}" if comp['drift'] else ""
                 
+                # Prepare response displays
+                response1 = comp.get('response_1', 'N/A')
+                response2 = comp.get('response_2', 'N/A')
+                response1_html = f'<div class="response-text">{response1}</div>'
+                response2_html = f'<div class="response-text">{response2}</div>'
+                
                 detailed_analysis_html += f"""
                 <tr class="{drift_class}">
                     <td>{comp['model_1']}</td>
@@ -512,6 +534,8 @@ class ReportGenerator:
                     <td>{sim_str}</td>
                     <td>{"Yes" if comp['drift'] else "No"}</td>
                     <td>{comp['severity']}</td>
+                    <td>{response1_html}</td>
+                    <td>{response2_html}</td>
                 </tr>
                 """
             

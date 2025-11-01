@@ -48,7 +48,7 @@ A comprehensive framework for testing LLM output consistency across different mo
    ```bash
    cp env.example .env
    # Edit .env and add your OpenAI API key: OPENAI_API_KEY=your-api-key-here
-   # The example scripts will automatically load .env via python-dotenv
+   # env.example contains safe defaults, .env should contain your secrets
    ```
 
 5. **Run a basic test**
@@ -195,6 +195,14 @@ The framework generates comprehensive reports including:
 - **JSON Report**: Machine-readable results
 - **Charts**: Visual representations of drift patterns
 
+### HTML Report Examples
+
+The framework generates comprehensive HTML reports with detailed drift analysis and interactive visualizations:
+
+![HTML Report Overview](html_report1.png)
+
+![HTML Report Detailed Analysis](html_report2.png)
+
 ### Example Report Structure
 ```
 reports/
@@ -304,6 +312,3 @@ python examples/test_openai_key.py
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-
-

@@ -15,6 +15,10 @@ on:
 env:
   PYTHON_VERSION: '3.11'
 
+permissions:
+  contents: write
+  id-token: write
+
 jobs:
   build-and-release:
     name: Build and Create GitHub Release

@@ -1,5 +1,11 @@
 # LLM Prompt Regression Testing Framework
 
+[![Latest Release](https://img.shields.io/github/v/release/jingbinw/llm-prompt-regression)](https://github.com/jingbinw/llm-prompt-regression/releases/latest)
+[![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+📦 **[Download Latest Release](https://github.com/jingbinw/llm-prompt-regression/releases/latest)** | 📋 **[View All Releases](https://github.com/jingbinw/llm-prompt-regression/releases)**
+
 A comprehensive framework for testing LLM output consistency across different model versions and parameter configurations. This framework helps detect drift and inconsistencies in LLM responses, ensuring reliable AI applications.
 
 ## Features
@@ -21,13 +27,20 @@ A comprehensive framework for testing LLM output consistency across different mo
 
 ### Installation
 
+#### Option 1: Download Latest Release (Recommended)
+1. **Download the latest stable release**
+   - Go to [Releases](https://github.com/jingbinw/llm-prompt-regression/releases/latest)
+   - Download the source code (zip or tar.gz)
+   - Extract and follow steps 2-5 below
+
+#### Option 2: Clone Repository (Development)
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/llm-prompt-regression.git
+   git clone https://github.com/jingbinw/llm-prompt-regression.git
    cd llm-prompt-regression
    ```
 
-2. **Create and activate virtual environment**
+2. **Create and activate virtual environment** (for both options)
    ```bash
    # create virtural environment
    python -m venv venv
